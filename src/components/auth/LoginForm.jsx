@@ -9,7 +9,7 @@ const LoginForm = ({ userType = 'student' }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, adminLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,25 +18,12 @@ const LoginForm = ({ userType = 'student' }) => {
     setIsLoading(true);
 
     try {
-      // For admin login, use simple credentials
       if (userType === 'admin') {
-        if (email === 'admin@campuslearn.com' && password === 'admin123') {
-          login({ name: 'Admin', email }, 'admin');
-          navigate('/admin/dashboard');
-        } else {
-          throw new Error('Invalid admin credentials');
-        }
+        await adminLogin(email, password);
+        navigate('/admin/dashboard');
       } else {
-        // For student login, check localStorage
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const user = users.find(u => u.email === email && u.password === password);
-        
-        if (user) {
-          login(user, 'student');
-          navigate('/student/dashboard');
-        } else {
-          throw new Error('Invalid credentials');
-        }
+        await login(email, password);
+        navigate('/student/dashboard');
       }
     } catch (err) {
       setError(err.message);

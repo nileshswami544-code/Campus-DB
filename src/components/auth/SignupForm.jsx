@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { FiUser, FiMail, FiLock } from 'react-icons/fi';
 
 const SignupForm = () => {
@@ -15,6 +16,7 @@ const SignupForm = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -30,18 +32,9 @@ const SignupForm = () => {
     setIsLoading(true);
 
     try {
-      // Check if user already exists
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      if (users.some(u => u.email === formData.email)) {
-        throw new Error('User with this email already exists');
-      }
-
-      // Add new user to localStorage
-      users.push(formData);
-      localStorage.setItem('users', JSON.stringify(users));
-      
-      // Redirect to login page
-      navigate('/login');
+      const { email, password, ...additionalData } = formData;
+      await signup(email, password, additionalData);
+      navigate('/student/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
