@@ -52,7 +52,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    const dbRef = ref(db);
+    const userSnapshot = await get(child(dbRef, `users/${user.uid}`));
+    if (userSnapshot.exists()) {
+      setCurrentUser({ uid: user.uid, ...userSnapshot.val() });
+    } else {
+      setCurrentUser(user);
+    }
+    return userCredential;
   };
 
   const adminLogin = (email, password) => {
@@ -83,7 +92,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
